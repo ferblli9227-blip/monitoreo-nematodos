@@ -1,0 +1,1037 @@
+
+<html lang="es" class="h-full bg-slate-50">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Visualizador de Monitoreo de Nematodos - Meloidogyne</title>
+    <!-- Tailwind CSS para el diseño de calidad premium -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js para los gráficos dinámicos -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Lucide Icons para iconografía moderna -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+        }
+        .scrollbar-thin::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        .scrollbar-thin::-webkit-scrollbar-track {
+            background: #f1f5f9;
+        }
+        .scrollbar-thin::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body class="h-full flex flex-col text-slate-800">
+
+    <!-- Header Principal -->
+    <header class="bg-gradient-to-r from-emerald-800 to-teal-950 text-white shadow-md py-4 px-6 sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div class="flex items-center gap-3">
+                <div class="p-2.5 bg-emerald-700/50 rounded-xl border border-emerald-500/30">
+                    <i data-lucide="shield-alert" class="w-7 h-7 text-emerald-300"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">MeloidoGuard v2.0</h1>
+                    <p class="text-xs text-emerald-200/80">Tablero Integrado de Diagnóstico Fitosanitario (Bloques Pares e Impares)</p>
+                </div>
+            </div>
+            
+            <!-- Selector de Rango y Unidad -->
+            <div class="flex items-center gap-3 text-sm">
+                <span class="px-3 py-1.5 bg-emerald-900/60 rounded-lg border border-emerald-700 text-xs font-medium text-emerald-300">
+                    Unidad de Medida: <strong># Individuos / 100 cc Sustrato</strong>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Contenedor Principal -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 space-y-6">
+        
+        <!-- KPIs / Tarjetas de Resumen Dinámicas -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <!-- KPI 1: Promedio General de Finca -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Promedio General Finca</p>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-promedio">96.8</h3>
+                    <p class="text-xs text-rose-500 font-medium mt-1.5 flex items-center gap-1" id="kpi-avg-evolution">
+                        <i data-lucide="trending-up" class="w-3.5 h-3.5"></i> Carga biótica activa
+                    </p>
+                </div>
+                <div class="p-3 bg-slate-100 rounded-xl text-slate-600">
+                    <i data-lucide="bar-chart-2" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- KPI 2: Máximo Histórico Registrado -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Pico Máximo Histórico</p>
+                    <h3 class="text-2xl font-extrabold text-rose-600 mt-2">Válvula 32</h3>
+                    <p class="text-xs text-rose-600 font-semibold mt-1.5 flex items-center gap-1">
+                        <span class="inline-block w-2 h-2 rounded-full bg-rose-600 animate-pulse"></span>
+                        602 ind/100 cc (B62, Sem 8-2025)
+                    </p>
+                </div>
+                <div class="p-3 bg-rose-50 rounded-xl text-rose-600">
+                    <i data-lucide="alert-triangle" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- KPI 3: Bloque con mayor infestación general -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Bloque Más Crítico</p>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mt-2">Bloque 61</h3>
+                    <p class="text-xs text-slate-500 mt-1.5">Promedio total: 165 ind/100 cc</p>
+                </div>
+                <div class="p-3 bg-amber-50 rounded-xl text-amber-600">
+                    <i data-lucide="activity" class="w-5 h-5"></i>
+                </div>
+            </div>
+
+            <!-- KPI 4: Estado de control global -->
+            <div class="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-sm flex items-start justify-between">
+                <div>
+                    <p class="text-xs font-semibold text-slate-500 uppercase tracking-wider">Focos Activos de Riesgo</p>
+                    <h3 class="text-2xl font-extrabold text-slate-800 mt-2" id="kpi-focos">16 / 45</h3>
+                    <p class="text-xs text-amber-600 font-semibold mt-1.5 flex items-center gap-1">
+                        <i data-lucide="shield" class="w-3.5 h-3.5"></i> Válvulas > 100 ind/100 cc
+                    </p>
+                </div>
+                <div class="p-3 bg-emerald-50 rounded-xl text-emerald-600">
+                    <i data-lucide="shield-check" class="w-5 h-5"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pestañas de Navegación -->
+        <div class="border-b border-slate-200">
+            <nav class="flex space-x-6" aria-label="Tabs">
+                <button onclick="switchTab('dashboard')" id="tab-btn-dashboard" class="border-emerald-600 text-emerald-600 flex items-center gap-2 py-3 px-1 border-b-2 font-semibold text-sm">
+                    <i data-lucide="line-chart" class="w-4 h-4"></i> Gráficos y Tendencias
+                </button>
+                <button onclick="switchTab('heatmap')" id="tab-btn-heatmap" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm">
+                    <i data-lucide="grid" class="w-4 h-4"></i> Mapa de Distribución en Campo
+                </button>
+                <button onclick="switchTab('table')" id="tab-btn-table" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm">
+                    <i data-lucide="table-properties" class="w-4 h-4"></i> Tabla de Datos Detallada
+                </button>
+                <button onclick="switchTab('calculator')" id="tab-btn-calculator" class="border-transparent text-slate-500 hover:text-slate-700 hover:border-slate-300 flex items-center gap-2 py-3 px-1 border-b-2 font-medium text-sm">
+                    <i data-lucide="calculator" class="w-4 h-4"></i> Prescriptor de Tratamientos
+                </button>
+            </nav>
+        </div>
+
+        <!-- SECCIÓN 1: DASHBOARD DE GRÁFICOS -->
+        <div id="tab-dashboard" class="space-y-6 tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Filtros del Gráfico -->
+                <div class="lg:col-span-3 bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                    <h4 class="font-bold text-sm text-slate-700 uppercase tracking-wide flex items-center gap-1.5 border-b pb-3">
+                        <i data-lucide="sliders" class="w-4 h-4 text-emerald-600"></i> Parámetros de Análisis
+                    </h4>
+                    
+                    <!-- Selección de Bloque para Vista Detallada de Válvulas -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-600" for="block-select">Bloque Detallado (Válvulas):</label>
+                        <select id="block-select" onchange="onBlockChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-sm focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-medium">
+                            <!-- Inyectado dinámicamente para incluir todos los bloques -->
+                        </select>
+                    </div>
+
+                    <!-- Leyenda interactiva de severidades -->
+                    <div class="space-y-2 pt-2">
+                        <h5 class="text-xs font-bold text-slate-600 border-b pb-1">Umbrales de Severidad:</h5>
+                        <div class="space-y-1.5">
+                            <div class="flex items-center gap-2 text-xs text-slate-600">
+                                <span class="w-3.5 h-3.5 bg-emerald-500 rounded-full inline-block border border-white shadow-sm"></span>
+                                Bajo (&lt; 50 ind/100cc)
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-600">
+                                <span class="w-3.5 h-3.5 bg-yellow-400 rounded-full inline-block border border-white shadow-sm"></span>
+                                Moderado (50 - 100 ind/100cc)
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-600">
+                                <span class="w-3.5 h-3.5 bg-orange-400 rounded-full inline-block border border-white shadow-sm"></span>
+                                Alto (100 - 200 ind/100cc)
+                            </div>
+                            <div class="flex items-center gap-2 text-xs text-slate-600">
+                                <span class="w-3.5 h-3.5 bg-rose-500 rounded-full inline-block border border-white shadow-sm"></span>
+                                Crítico (&gt; 200 ind/100cc)
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selector de Líneas de Gráfico Histórico -->
+                    <div class="space-y-2 pt-4 border-t border-slate-100">
+                        <div class="flex justify-between items-center">
+                            <h5 class="text-xs font-bold text-slate-600">Líneas de Historial Activas:</h5>
+                            <button onclick="toggleAllBlocksTrend(true)" class="text-xxs text-emerald-600 hover:underline font-bold">Todas</button>
+                        </div>
+                        <div class="max-h-48 overflow-y-auto scrollbar-thin space-y-1.5 pr-1" id="block-trend-checkboxes">
+                            <!-- Checkboxes de bloques inyectados aquí -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Gráfico de Tendencia Histórica y Detalle -->
+                <div class="lg:col-span-9 grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Gráfico 1: Histórico de Evolución -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-700 tracking-tight flex items-center gap-2">
+                                <i data-lucide="line-chart" class="w-4 h-4 text-emerald-600"></i> Evolución Temporal de Bloques Seleccionados
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Historial dinámico de monitoreos consolidados</p>
+                        </div>
+                        <div class="h-80 mt-4 relative">
+                            <canvas id="chart-trend"></canvas>
+                        </div>
+                    </div>
+
+                    <!-- Gráfico 2: Detalle por Válvulas del Bloque Seleccionado -->
+                    <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                        <div>
+                            <h4 class="font-bold text-sm text-slate-700 tracking-tight flex items-center gap-2">
+                                <i data-lucide="bar-chart-3" class="w-4 h-4 text-emerald-600"></i> Desglose por Válvulas
+                            </h4>
+                            <p class="text-xs text-slate-400 mt-0.5">Nivel biótico específico por válvula en el bloque activo</p>
+                        </div>
+                        <div class="h-80 mt-4 relative">
+                            <canvas id="chart-valves"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 2: MAPA DE DISTRIBUCIÓN (HEATMAP) -->
+        <div id="tab-heatmap" class="hidden space-y-6 tab-content">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b pb-4 mb-6 gap-4">
+                    <div>
+                        <h4 class="font-bold text-base text-slate-800 tracking-tight flex items-center gap-2">
+                            <i data-lucide="grid" class="w-5 h-5 text-emerald-600"></i> Mapa Térmico de Incidencia de Nematodos
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Mapeo espacial de focos de infección según el período de muestreo seleccionado</p>
+                    </div>
+
+                    <!-- Selector de Semana para el Heatmap -->
+                    <div class="flex items-center gap-2">
+                        <label class="text-xs font-bold text-slate-600 shadow-sm" for="heatmap-week-select">Período de Muestreo:</label>
+                        <select id="heatmap-week-select" onchange="renderHeatmap()" class="bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-semibold text-slate-700">
+                            <option value="s8_2025" selected>Semana 8 del 2025</option>
+                            <option value="s38_2025">Semana 38 del 2025</option>
+                            <option value="s3_2026">Semana 3 del 2026</option>
+                            <option value="s5_2026">Semana 5 del 2026</option>
+                            <option value="s19_2026">Semana 19 del 2026</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Contenedor del Mapa Espacial -->
+                <div class="overflow-x-auto scrollbar-thin pb-4">
+                    <div class="min-w-[900px] grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 lg:grid-cols-7 xl:grid-cols-9 gap-4" id="heatmap-grid">
+                        <!-- Generado dinámicamente -->
+                    </div>
+                </div>
+
+                <!-- Leyenda e Indicador de Interpretación -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8 pt-6 border-t border-slate-100">
+                    <div class="space-y-2">
+                        <h5 class="text-xs font-bold text-slate-700">📌 Guía de Interpretación del Mapa:</h5>
+                        <p class="text-xs text-slate-500 leading-relaxed">
+                            Las válvulas se despliegan de forma ordenada. Los colores representan la densidad poblacional de nematodos por cada 100 cc de sustrato en el momento del muestreo. Las etiquetas <strong class="text-rose-600">S/D</strong> indican que esa válvula no fue contemplada en el programa de monitoreo de esa semana. Haz clic en cualquier celda para proyectar su ficha histórica y recomendación de control.
+                        </p>
+                    </div>
+                    <div id="heatmap-card-detail" class="bg-slate-50 p-4 rounded-xl border border-slate-200 flex flex-col justify-between">
+                        <div class="text-center text-slate-400 py-6" id="heatmap-detail-empty">
+                            <i data-lucide="mouse-pointer" class="w-8 h-8 mx-auto mb-2 text-slate-300"></i>
+                            <p class="text-xs font-medium">Haz clic en cualquier celda para ver diagnóstico</p>
+                        </div>
+                        <div class="hidden space-y-3" id="heatmap-detail-content">
+                            <div class="flex justify-between items-center">
+                                <h6 class="font-bold text-sm text-slate-800" id="hm-detail-title">Bloque X - Válvula Y</h6>
+                                <span class="px-2.5 py-0.5 text-xxs font-bold uppercase rounded-full shadow-sm" id="hm-detail-badge">Severidad</span>
+                            </div>
+                            <div class="grid grid-cols-5 gap-1.5 text-center text-xxs">
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="text-slate-400 block font-semibold">Sem 8-25</span>
+                                    <strong class="text-slate-700 mt-1 block" id="hm-val-1">-</strong>
+                                </div>
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="text-slate-400 block font-semibold">Sem 38-25</span>
+                                    <strong class="text-slate-700 mt-1 block" id="hm-val-2">-</strong>
+                                </div>
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="text-slate-400 block font-semibold">Sem 3-26</span>
+                                    <strong class="text-slate-700 mt-1 block" id="hm-val-3">-</strong>
+                                </div>
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="text-slate-400 block font-semibold">Sem 5-26</span>
+                                    <strong class="text-slate-700 mt-1 block" id="hm-val-4">-</strong>
+                                </div>
+                                <div class="bg-white p-2 rounded border">
+                                    <span class="text-slate-400 block font-semibold">Sem 19-26</span>
+                                    <strong class="text-slate-700 mt-1 block" id="hm-val-5">-</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 3: BASE DE DATOS COMPLETA -->
+        <div id="tab-table" class="hidden space-y-6 tab-content">
+            <div class="bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-4">
+                <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b pb-4">
+                    <div>
+                        <h4 class="font-bold text-base text-slate-800 tracking-tight flex items-center gap-2">
+                            <i data-lucide="database" class="w-5 h-5 text-emerald-600"></i> Historial Estructurado
+                        </h4>
+                        <p class="text-xs text-slate-400 mt-0.5">Filtre y realice búsquedas avanzadas en todo el universo de datos consolidados</p>
+                    </div>
+
+                    <!-- Buscador e interactivos -->
+                    <div class="flex flex-col sm:flex-row gap-2.5 w-full sm:w-auto">
+                        <div class="relative flex-1 sm:w-64">
+                            <i data-lucide="search" class="w-4 h-4 absolute left-3 top-2.5 text-slate-400"></i>
+                            <input type="text" id="table-search" oninput="filterTable()" placeholder="Buscar Bloque o Válvula..." class="w-full bg-slate-50 border border-slate-300 rounded-lg pl-9 pr-4 py-1.5 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all">
+                        </div>
+                        <select id="table-severity-filter" onchange="filterTable()" class="bg-slate-50 border border-slate-300 rounded-lg py-1.5 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-semibold text-slate-700">
+                            <option value="all">Todas las Severidades</option>
+                            <option value="critico">🔴 Crítico (&gt;200)</option>
+                            <option value="alto">🟠 Alto (100-200)</option>
+                            <option value="moderado">🟡 Moderado (50-100)</option>
+                            <option value="bajo">🟢 Bajo (&lt;50)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Tabla de datos responsive -->
+                <div class="overflow-x-auto border border-slate-200 rounded-xl scrollbar-thin">
+                    <table class="w-full text-left border-collapse text-xs">
+                        <thead>
+                            <tr class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold">
+                                <th class="p-4">Bloque de Riego</th>
+                                <th class="p-4">Válvula</th>
+                                <th class="p-4 text-center">S8 - 2025</th>
+                                <th class="p-4 text-center">S38 - 2025</th>
+                                <th class="p-4 text-center">S3 - 2026</th>
+                                <th class="p-4 text-center">S5 - 2026</th>
+                                <th class="p-4 text-center">S19 - 2026</th>
+                                <th class="p-4 text-center bg-slate-100/50">Promedio Total</th>
+                                <th class="p-4 text-center">Estatus</th>
+                            </tr>
+                        </thead>
+                        <tbody id="table-body" class="divide-y divide-slate-100">
+                            <!-- Inyectado dinámicamente -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- SECCIÓN 4: CALCULADOR Y PRESCRIPTOR TÉCNICO -->
+        <div id="tab-calculator" class="hidden space-y-6 tab-content">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+                <!-- Parámetros de dosificación -->
+                <div class="lg:col-span-5 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm space-y-5 flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-base text-slate-800 tracking-tight flex items-center gap-2 border-b pb-3 mb-4">
+                            <i data-lucide="calculator" class="w-5 h-5 text-emerald-600"></i> Dosificador Agronómico de Precisión
+                        </h4>
+                        <p class="text-xs text-slate-500 mb-4 leading-relaxed">
+                            Ajuste y configure las dosis de agentes químicos y biológicos requeridos según el nivel real de infectación registrado en la válvula elegida.
+                        </p>
+                        
+                        <div class="space-y-4">
+                            <!-- Selector de Bloque y Válvula para prescripción -->
+                            <div class="grid grid-cols-2 gap-3">
+                                <div class="space-y-1.5">
+                                    <label class="block text-xxs font-bold text-slate-500 uppercase tracking-wider" for="calc-block">Bloque</label>
+                                    <select id="calc-block" onchange="populateCalcValves()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-medium">
+                                        <!-- Inyectado -->
+                                    </select>
+                                </div>
+                                <div class="space-y-1.5">
+                                    <label class="block text-xxs font-bold text-slate-500 uppercase tracking-wider" for="calc-valve">Válvula</label>
+                                    <select id="calc-valve" onchange="runPrescription()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-medium">
+                                        <!-- Inyectado -->
+                                    </select>
+                                </div>
+                            </div>
+
+                            <!-- Entrada del volumen de sustrato -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xxs font-bold text-slate-500 uppercase tracking-wider" for="calc-area">Volumen total de sustrato (m³)</label>
+                                <input type="number" id="calc-area" value="50" oninput="runPrescription()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-semibold">
+                                <span class="text-slate-400 text-xxs block">Base geométrica del sustrato para la dilución.</span>
+                            </div>
+
+                            <!-- Tipo de Control -->
+                            <div class="space-y-1.5">
+                                <label class="block text-xxs font-bold text-slate-500 uppercase tracking-wider" for="calc-type">Estrategia de Control Sugerida</label>
+                                <select id="calc-type" onchange="runPrescription()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-xs focus:ring-2 focus:ring-emerald-500 focus:outline-none transition-all font-semibold">
+                                    <option value="biological">Control Biológico (Purpureocillium lilacinum)</option>
+                                    <option value="chemical">Control Químico Nematicida (Sistémico)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-6 pt-4 border-t border-slate-100 flex items-center gap-3">
+                        <i data-lucide="info" class="w-10 h-10 text-emerald-600 flex-shrink-0"></i>
+                        <p class="text-xxs text-slate-400">
+                            Fórmula de recomendación calibrada con base en los límites fitosanitarios para control del género <strong>Meloidogyne</strong> en cultivos intensivos.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Receta e indicaciones de aplicación -->
+                <div class="lg:col-span-7 bg-white p-6 rounded-2xl border border-slate-200 shadow-sm flex flex-col justify-between">
+                    <div>
+                        <h4 class="font-bold text-base text-slate-800 tracking-tight flex items-center gap-2 border-b pb-3 mb-4">
+                            <i data-lucide="clipboard-list" class="w-5 h-5 text-emerald-600"></i> Ficha Recetaria de Tratamiento
+                        </h4>
+                        
+                        <!-- Panel de Salida -->
+                        <div class="space-y-6">
+                            <div class="flex justify-between items-start">
+                                <div>
+                                    <h5 class="text-sm font-extrabold text-slate-800" id="prescription-target">PRESCIPCIÓN: Bloque -- Válvula --</h5>
+                                    <p class="text-xs text-slate-400 mt-0.5">Densidad de Muestreo Máxima: <span id="prescription-poblacion" class="font-bold text-rose-500">0</span> ind/100 cc</p>
+                                </div>
+                                <span class="px-3 py-1 rounded-full text-xs font-bold" id="prescription-severity-badge">Severidad: --</span>
+                            </div>
+
+                            <!-- Resultados de Cálculo -->
+                            <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                                <div class="bg-emerald-50/50 border border-emerald-100 p-4 rounded-xl text-center">
+                                    <span class="text-xxs text-emerald-700 font-bold uppercase block tracking-wider">Dosis Activa Requerida</span>
+                                    <strong class="text-xl font-black text-emerald-900 mt-1.5 block" id="prescription-dose">0.0 kg/Ha</strong>
+                                    <span class="text-slate-400 text-xxs mt-0.5 block" id="prescription-unit-desc">Agente Concentrado</span>
+                                </div>
+                                <div class="bg-amber-50/50 border border-amber-100 p-4 rounded-xl text-center">
+                                    <span class="text-xxs text-amber-700 font-bold uppercase block tracking-wider">Volumen Dilución Mínimo</span>
+                                    <strong class="text-xl font-black text-amber-900 mt-1.5 block" id="prescription-dilution">0 Lts</strong>
+                                    <span class="text-slate-400 text-xxs mt-0.5 block">Listo para inyección</span>
+                                </div>
+                                <div class="bg-sky-50/50 border border-sky-100 p-4 rounded-xl text-center">
+                                    <span class="text-xxs text-sky-700 font-bold uppercase block tracking-wider">Ciclo Frecuencia</span>
+                                    <strong class="text-lg font-black text-sky-900 mt-2.5 block" id="prescription-frequency">Cada 15 días</strong>
+                                    <span class="text-slate-400 text-xxs mt-0.5 block">Monitoreo intermedio</span>
+                                </div>
+                            </div>
+
+                            <!-- Instrucciones Técnicas -->
+                            <div class="bg-slate-50 border border-slate-200 p-4 rounded-xl space-y-2">
+                                <h6 class="text-xs font-extrabold text-slate-700 flex items-center gap-1.5">
+                                    <i data-lucide="info" class="w-4 h-4 text-emerald-600"></i> Protocolo de Operación en Riego:
+                                </h6>
+                                <p class="text-xs text-slate-500 leading-relaxed" id="prescription-instructions">
+                                    Seleccione un bloque y una válvula para ver las recomendaciones técnicas de aplicación y control de nematodos.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Botones de Acción -->
+                    <div class="mt-6 pt-4 border-t flex flex-wrap gap-3 justify-end">
+                        <button onclick="window.print()" class="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-lg text-xs font-bold transition-all flex items-center gap-2">
+                            <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Receta Fitosanitaria
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 text-slate-400 py-4 px-6 text-center text-xs mt-auto">
+        <p>© 2026 Dashboard de Sanidad de Cultivo - Control y Erradicación de Nematodos. Desarrollado para análisis de campo agronómico.</p>
+    </footer>
+
+    <!-- Lógica JavaScript Principal -->
+    <script>
+        // Base de Datos Estructurada uniendo ambas imágenes (Pares e Impares)
+        const dataset = [
+            // --- BLOQUES PARES (Imagen 2) ---
+            { bloque: "50", valvula: "1", s8_2025: 220, s38_2025: null, s3_2026: 18, s5_2026: null, s19_2026: null, total: 119 },
+            { bloque: "50", valvula: "2", s8_2025: 235, s38_2025: null, s3_2026: 24, s5_2026: null, s19_2026: null, total: 130 },
+            { bloque: "50", valvula: "3", s8_2025: 131, s38_2025: null, s3_2026: 121, s5_2026: null, s19_2026: null, total: 126 },
+            
+            { bloque: "52", valvula: "4", s8_2025: 95, s38_2025: 130, s3_2026: 170, s5_2026: null, s19_2026: null, total: 132 },
+            { bloque: "52", valvula: "5", s8_2025: 84, s38_2025: 58, s3_2026: 28, s5_2026: null, s19_2026: null, total: 56 },
+            { bloque: "52", valvula: "6", s8_2025: 268, s38_2025: 60, s3_2026: 20, s5_2026: null, s19_2026: null, total: 116 },
+            { bloque: "52", valvula: "7", s8_2025: 155, s38_2025: 101, s3_2026: 59, s5_2026: null, s19_2026: null, total: 105 },
+            { bloque: "52", valvula: "8", s8_2025: 93, s38_2025: 35, s3_2026: 68, s5_2026: null, s19_2026: null, total: 66 },
+            
+            { bloque: "54", valvula: "9", s8_2025: 55, s38_2025: null, s3_2026: 40, s5_2026: null, s19_2026: null, total: 48 },
+            { bloque: "54", valvula: "10", s8_2025: 53, s38_2025: null, s3_2026: 104, s5_2026: null, s19_2026: null, total: 78 },
+            { bloque: "54", valvula: "11", s8_2025: 123, s38_2025: null, s3_2026: 95, s5_2026: null, s19_2026: null, total: 109 },
+            
+            { bloque: "56", valvula: "21", s8_2025: 45, s38_2025: null, s3_2026: 43, s5_2026: null, s19_2026: null, total: 44 },
+            { bloque: "56", valvula: "22", s8_2025: 110, s38_2025: null, s3_2026: 85, s5_2026: null, s19_2026: null, total: 98 },
+            { bloque: "56", valvula: "23", s8_2025: 113, s38_2025: null, s3_2026: 46, s5_2026: null, s19_2026: null, total: 80 },
+            
+            { bloque: "58", valvula: "24", s8_2025: 55, s38_2025: null, s3_2026: 324, s5_2026: null, s19_2026: 8, total: 129 },
+            { bloque: "58", valvula: "25", s8_2025: 102, s38_2025: null, s3_2026: 29, s5_2026: null, s19_2026: 31, total: 54 },
+            { bloque: "58", valvula: "26", s8_2025: 57, s38_2025: null, s3_2026: 99, s5_2026: null, s19_2026: 20, total: 58 },
+            
+            { bloque: "60", valvula: "27", s8_2025: 93, s38_2025: null, s3_2026: 124, s5_2026: null, s19_2026: 46, total: 88 },
+            { bloque: "60", valvula: "28", s8_2025: 97, s38_2025: null, s3_2026: 95, s5_2026: null, s19_2026: 15, total: 69 },
+            { bloque: "60", valvula: "29", s8_2025: 161, s38_2025: null, s3_2026: 9, s5_2026: null, s19_2026: 23, total: 64 },
+            
+            { bloque: "62", valvula: "30", s8_2025: 9, s38_2025: null, s3_2026: 95, s5_2026: null, s19_2026: 22, total: 42 },
+            { bloque: "62", valvula: "31", s8_2025: 38, s38_2025: null, s3_2026: 84, s5_2026: null, s19_2026: 27, total: 49 },
+            { bloque: "62", valvula: "32", s8_2025: 602, s38_2025: null, s3_2026: 85, s5_2026: null, s19_2026: 13, total: 234 },
+
+            // --- BLOQUES IMPARES (Imagen 1) ---
+            { bloque: "51", valvula: "12", s8_2025: 53, s38_2025: null, s3_2026: null, s5_2026: 209, s19_2026: null, total: 131 },
+            { bloque: "51", valvula: "13", s8_2025: 65, s38_2025: null, s3_2026: null, s5_2026: 334, s19_2026: null, total: 199 },
+            { bloque: "51", valvula: "14", s8_2025: 69, s38_2025: null, s3_2026: null, s5_2026: 157, s19_2026: null, total: 113 },
+            
+            { bloque: "53", valvula: "15", s8_2025: 80, s38_2025: null, s3_2026: null, s5_2026: 146, s19_2026: 38, total: 88 },
+            { bloque: "53", valvula: "16", s8_2025: 48, s38_2025: null, s3_2026: null, s5_2026: 97, s19_2026: 34, total: 60 },
+            { bloque: "53", valvula: "17", s8_2025: 32, s38_2025: null, s3_2026: null, s5_2026: 305, s19_2026: 52, total: 130 },
+            
+            { bloque: "55", valvula: "18", s8_2025: 23, s38_2025: null, s3_2026: null, s5_2026: 246, s19_2026: null, total: 135 },
+            { bloque: "55", valvula: "19", s8_2025: 34, s38_2025: null, s3_2026: null, s5_2026: 165, s19_2026: null, total: 99 },
+            { bloque: "55", valvula: "20", s8_2025: 58, s38_2025: null, s3_2026: null, s5_2026: 258, s19_2026: null, total: 158 },
+            
+            { bloque: "57", valvula: "33", s8_2025: 190, s38_2025: null, s3_2026: null, s5_2026: 155, s19_2026: 19, total: 121 },
+            { bloque: "57", valvula: "34", s8_2025: 125, s38_2025: null, s3_2026: null, s5_2026: 108, s19_2026: 92, total: 108 },
+            { bloque: "57", valvula: "35", s8_2025: 59, s38_2025: null, s3_2026: null, s5_2026: 55, s19_2026: 40, total: 52 },
+            
+            { bloque: "59", valvula: "36", s8_2025: 39, s38_2025: null, s3_2026: null, s5_2026: 177, s19_2026: null, total: 108 },
+            { bloque: "59", valvula: "37", s8_2025: 23, s38_2025: null, s3_2026: null, s5_2026: 117, s19_2026: null, total: 70 },
+            { bloque: "59", valvula: "38", s8_2025: 19, s38_2025: null, s3_2026: null, s5_2026: 216, s19_2026: null, total: 118 },
+            
+            { bloque: "61", valvula: "39", s8_2025: 69, s38_2025: null, s3_2026: null, s5_2026: 166, s19_2026: null, total: 118 },
+            { bloque: "61", valvula: "40", s8_2025: 90, s38_2025: null, s3_2026: null, s5_2026: 346, s19_2026: null, total: 218 },
+            { bloque: "61", valvula: "41", s8_2025: 42, s38_2025: null, s3_2026: null, s5_2026: 275, s19_2026: null, total: 159 },
+            
+            { bloque: "63", valvula: "42", s8_2025: 66, s38_2025: null, s3_2026: null, s5_2026: 34, s19_2026: 36, total: 45 },
+            { bloque: "63", valvula: "43", s8_2025: 69, s38_2025: null, s3_2026: null, s5_2026: 43, s19_2026: 72, total: 61 },
+            { bloque: "63", valvula: "44", s8_2025: 55, s38_2025: null, s3_2026: null, s5_2026: 42, s19_2026: 19, total: 39 },
+            
+            { bloque: "64", valvula: "45", s8_2025: null, s38_2025: null, s3_2026: null, s5_2026: null, s19_2026: 13, total: 13 }
+        ];
+
+        // Promedios e Historial consolidado de Bloques
+        const blockAverages = {
+            "50": { s8_2025: 196, s38_2025: null, s3_2026: 54, s5_2026: null, s19_2026: null, total: 125 },
+            "51": { s8_2025: 62, s38_2025: null, s3_2026: null, s5_2026: 233, s19_2026: null, total: 148 },
+            "52": { s8_2025: 139, s38_2025: 77, s3_2026: 69, s5_2026: null, s19_2026: null, total: 95 },
+            "53": { s8_2025: 54, s38_2025: null, s3_2026: null, s5_2026: 183, s19_2026: 42, total: 93 },
+            "54": { s8_2025: 77, s38_2025: null, s3_2026: 80, s5_2026: null, s19_2026: null, total: 78 },
+            "55": { s8_2025: 38, s38_2025: null, s3_2026: null, s5_2026: 223, s19_2026: null, total: 131 },
+            "56": { s8_2025: 89, s38_2025: null, s3_2026: 58, s5_2026: null, s19_2026: null, total: 74 },
+            "57": { s8_2025: 125, s38_2025: null, s3_2026: null, s5_2026: 106, s19_2026: 51, total: 94 },
+            "58": { s8_2025: 71, s38_2025: null, s3_2026: 151, s5_2026: null, s19_2026: 20, total: 81 },
+            "59": { s8_2025: 27, s38_2025: null, s3_2026: null, s5_2026: 170, s19_2026: null, total: 98 },
+            "60": { s8_2025: 117, s38_2025: null, s3_2026: 76, s5_2026: null, s19_2026: 28, total: 74 },
+            "61": { s8_2025: 67, s38_2025: null, s3_2026: null, s5_2026: 262, s19_2026: null, total: 165 },
+            "62": { s8_2025: 216, s38_2025: null, s3_2026: 88, s5_2026: null, s19_2026: 21, total: 108 },
+            "63": { s8_2025: 63, s38_2025: null, s3_2026: null, s5_2026: 40, s19_2026: 42, total: 48 },
+            "64": { s8_2025: null, s38_2025: null, s3_2026: null, s5_2026: null, s19_2026: 13, total: 13 }
+        };
+
+        // Variables de gráficos de Chart.js
+        let trendChart = null;
+        let valvesChart = null;
+        
+        // Bloques activos por defecto en la gráfica de tendencias para evitar solapamientos
+        const activeBlocksInTrend = ["50", "51", "52", "58", "61", "62"];
+
+        window.onload = function() {
+            lucide.createIcons();
+            
+            // Inyectar selectores dinámicos
+            populateSelectors();
+            initTrendCheckboxes();
+            
+            // Inicializar vistas e interactivos
+            initCharts();
+            renderHeatmap();
+            renderTable();
+            initCalculator();
+            
+            // Calcular y ajustar KPI generales dinámicos
+            calculateGlobalKPIs();
+        };
+
+        // Genera los bloques en el selector
+        function populateSelectors() {
+            const blockSelect = document.getElementById('block-select');
+            blockSelect.innerHTML = '';
+            
+            const uniqueBlocks = Object.keys(blockAverages).sort((a,b) => parseInt(a) - parseInt(b));
+            uniqueBlocks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.innerText = `Bloque ${b}`;
+                if (b === "51") opt.selected = true; // Por defecto
+                blockSelect.appendChild(opt);
+            });
+        }
+
+        // Generar lista de checkboxes de bloque para controlar el gráfico
+        function initTrendCheckboxes() {
+            const container = document.getElementById('block-trend-checkboxes');
+            container.innerHTML = '';
+            
+            const uniqueBlocks = Object.keys(blockAverages).sort((a,b) => parseInt(a) - parseInt(b));
+            uniqueBlocks.forEach(b => {
+                const isChecked = activeBlocksInTrend.includes(b);
+                const item = document.createElement('label');
+                item.className = "flex items-center gap-2 text-xs font-semibold text-slate-600 cursor-pointer hover:text-emerald-700 transition-colors";
+                item.innerHTML = `
+                    <input type="checkbox" value="${b}" ${isChecked ? 'checked' : ''} onchange="onTrendCheckboxChange(this)" class="rounded text-emerald-600 focus:ring-emerald-500 border-slate-300 w-3.5 h-3.5">
+                    Bloque ${b}
+                `;
+                container.appendChild(item);
+            });
+        }
+
+        // Manejar el cambio en los checkboxes de bloques
+        function onTrendCheckboxChange(checkbox) {
+            const val = checkbox.value;
+            if (checkbox.checked) {
+                if (!activeBlocksInTrend.includes(val)) activeBlocksInTrend.push(val);
+            } else {
+                const idx = activeBlocksInTrend.indexOf(val);
+                if (idx > -1) activeBlocksInTrend.splice(idx, 1);
+            }
+            updateTrendChart();
+        }
+
+        function toggleAllBlocksTrend(status) {
+            const checkboxes = document.querySelectorAll('#block-trend-checkboxes input');
+            activeBlocksInTrend.length = 0; // Limpiar array
+            
+            checkboxes.forEach(cb => {
+                cb.checked = status;
+                if (status) activeBlocksInTrend.push(cb.value);
+            });
+            updateTrendChart();
+        }
+
+        // Calcular KPIs Dinámicos con la suma de ambos sets de datos
+        function calculateGlobalKPIs() {
+            let totalSum = 0;
+            let totalCount = 0;
+            let criticalValvesCount = 0;
+
+            dataset.forEach(item => {
+                totalSum += item.total;
+                totalCount++;
+                if (item.total >= 100) {
+                    criticalValvesCount++;
+                }
+            });
+
+            const avgValue = (totalSum / totalCount).toFixed(1);
+            document.getElementById('kpi-promedio').innerText = `${avgValue} ind`;
+            document.getElementById('kpi-focos').innerText = `${criticalValvesCount} / ${totalCount}`;
+        }
+
+        // Control de Pestañas
+        function switchTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => {
+                tab.classList.add('hidden');
+            });
+            document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+            const tabButtons = ['dashboard', 'heatmap', 'table', 'calculator'];
+            tabButtons.forEach(btn => {
+                const el = document.getElementById(`tab-btn-${btn}`);
+                if (btn === tabId) {
+                    el.classList.add('border-emerald-600', 'text-emerald-600');
+                    el.classList.remove('border-transparent', 'text-slate-500');
+                    el.classList.add('font-semibold');
+                } else {
+                    el.classList.remove('border-emerald-600', 'text-emerald-600');
+                    el.classList.add('border-transparent', 'text-slate-500');
+                    el.classList.remove('font-semibold');
+                }
+            });
+
+            if (tabId === 'dashboard') {
+                setTimeout(() => {
+                    trendChart.resize();
+                    valvesChart.resize();
+                }, 50);
+            }
+        }
+
+        // Mapear color/badge según nivel biótico
+        function getSeverity(val) {
+            if (val === null || val === undefined) return { label: 'S/D', text: 'text-slate-400', bg: 'bg-slate-100', border: 'border-slate-200', hex: '#94a3b8' };
+            if (val < 50) return { label: 'Bajo', text: 'text-emerald-700', bg: 'bg-emerald-50', border: 'border-emerald-300', hex: '#10b981' };
+            if (val <= 100) return { label: 'Moderado', text: 'text-yellow-700', bg: 'bg-yellow-50', border: 'border-yellow-300', hex: '#facc15' };
+            if (val <= 200) return { label: 'Alto', text: 'text-orange-700', bg: 'bg-orange-50', border: 'border-orange-300', hex: '#f97316' };
+            return { label: 'Crítico', text: 'text-rose-700', bg: 'bg-rose-50', border: 'border-rose-300', hex: '#f43f5e' };
+        }
+
+        // 📊 LÓGICA DE GRÁFICOS (CHART.JS)
+        function initCharts() {
+            const trendCtx = document.getElementById('chart-trend').getContext('2d');
+            
+            trendChart = new Chart(trendCtx, {
+                type: 'line',
+                data: {
+                    labels: ['Semana 8 (2025)', 'Semana 38 (2025)', 'Semana 3 (2026)', 'Semana 5 (2026)', 'Semana 19 (2026)'],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9, weight: 600 } } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { 
+                            title: { display: true, text: 'Densidad (ind / 100 cc)', font: { size: 10, weight: 600 } },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+
+            const valvesCtx = document.getElementById('chart-valves').getContext('2d');
+            valvesChart = new Chart(valvesCtx, {
+                type: 'bar',
+                data: {
+                    labels: [],
+                    datasets: []
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: { position: 'top', labels: { boxWidth: 10, font: { size: 9, weight: 600 } } },
+                        tooltip: { mode: 'index', intersect: false }
+                    },
+                    scales: {
+                        y: { 
+                            title: { display: true, text: 'Densidad (ind / 100 cc)', font: { size: 10, weight: 600 } },
+                            ticks: { font: { size: 10 } }
+                        },
+                        x: { ticks: { font: { size: 9 } } }
+                    }
+                }
+            });
+
+            // Actualizar ambos gráficos inicialmente
+            updateTrendChart();
+            updateValvesChart("51");
+        }
+
+        // Renderiza las líneas de los bloques habilitados en el Sidebar
+        function updateTrendChart() {
+            const colors = {
+                "50": "#f43f5e", "51": "#3b82f6", "52": "#10b981", "53": "#f59e0b",
+                "54": "#8b5cf6", "55": "#06b6d4", "56": "#ec4899", "57": "#14b8a6",
+                "58": "#6366f1", "59": "#84cc16", "60": "#e11d48", "61": "#a855f7",
+                "62": "#d946ef", "63": "#22c55e", "64": "#64748b"
+            };
+
+            const datasets = activeBlocksInTrend.map(blockKey => {
+                const avg = blockAverages[blockKey];
+                return {
+                    label: `Bloque ${blockKey}`,
+                    data: [avg.s8_2025, avg.s38_2025, avg.s3_2026, avg.s5_2026, avg.s19_2026],
+                    borderColor: colors[blockKey] || '#64748b',
+                    backgroundColor: (colors[blockKey] || '#64748b') + '10',
+                    borderWidth: 2,
+                    tension: 0.15,
+                    spanGaps: true,
+                    pointRadius: 4,
+                    pointHoverRadius: 6
+                };
+            });
+
+            trendChart.data.datasets = datasets;
+            trendChart.update();
+        }
+
+        function onBlockChange() {
+            const select = document.getElementById('block-select');
+            const blockId = select.value;
+            updateValvesChart(blockId);
+
+            // Resumen de bloque rápido
+            const blockAvg = blockAverages[blockId].total;
+            const statusNode = document.getElementById('quick-block-status');
+            const sev = getSeverity(blockAvg);
+            
+            document.getElementById('quick-block-avg').innerText = `${blockAvg} ind`;
+            statusNode.innerText = sev.label.toUpperCase();
+            statusNode.className = `font-bold ${sev.text}`;
+        }
+
+        function updateValvesChart(blockId) {
+            const valvesInBlock = dataset.filter(item => item.bloque === blockId);
+            
+            const labels = valvesInBlock.map(v => `V- ${v.valvula}`);
+            const s8 = valvesInBlock.map(v => v.s8_2025);
+            const s38 = valvesInBlock.map(v => v.s38_2025);
+            const s3 = valvesInBlock.map(v => v.s3_2026);
+            const s5 = valvesInBlock.map(v => v.s5_2026);
+            const s19 = valvesInBlock.map(v => v.s19_2026);
+
+            valvesChart.data.labels = labels;
+            valvesChart.data.datasets = [
+                { label: 'S8-2025', data: s8, backgroundColor: '#10b981B0', borderWidth: 0 },
+                { label: 'S38-2025', data: s38, backgroundColor: '#6366f1B0', borderWidth: 0 },
+                { label: 'S3-2026', data: s3, backgroundColor: '#f59e0bB0', borderWidth: 0 },
+                { label: 'S5-2026', data: s5, backgroundColor: '#f43f5eB0', borderWidth: 0 },
+                { label: 'S19-2026', data: s19, backgroundColor: '#06b6d4B0', borderWidth: 0 }
+            ];
+            valvesChart.update();
+        }
+
+        // 🌡️ MAPA TÉRMICO DE INCIDENCIA EN VÁLVULAS
+        function renderHeatmap() {
+            const weekKey = document.getElementById('heatmap-week-select').value;
+            const gridContainer = document.getElementById('heatmap-grid');
+            gridContainer.innerHTML = '';
+
+            // Clasificar y ordenar todas las válvulas de forma secuencial por número de bloque y válvula
+            const sortedDataset = [...dataset].sort((a,b) => {
+                const bDiff = parseInt(a.bloque) - parseInt(b.bloque);
+                if (bDiff !== 0) return bDiff;
+                return parseInt(a.valvula) - parseInt(b.valvula);
+            });
+
+            sortedDataset.forEach(item => {
+                const val = item[weekKey];
+                const sev = getSeverity(val);
+
+                const cell = document.createElement('div');
+                cell.className = `p-3 rounded-xl border-2 cursor-pointer transition-all hover:scale-105 hover:shadow-md flex flex-col justify-between h-24 ${sev.bg} ${sev.border}`;
+                cell.onclick = () => showHeatmapDetail(item);
+
+                cell.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="text-slate-400 font-bold text-[10px] block">Bloque ${item.bloque}</span>
+                        <span class="px-1 py-0.5 rounded text-[8px] font-black uppercase text-white" style="background-color: ${sev.hex}">${sev.label}</span>
+                    </div>
+                    <div class="my-1">
+                        <span class="text-slate-800 font-extrabold text-base block">Válvula ${item.valvula}</span>
+                    </div>
+                    <div class="flex justify-between items-center border-t border-slate-200/50 pt-1">
+                        <span class="text-slate-400 text-[9px]">Población:</span>
+                        <strong class="text-slate-700 text-[11px] font-bold">${val !== null ? val : 'S/D'}</strong>
+                    </div>
+                `;
+
+                gridContainer.appendChild(cell);
+            });
+        }
+
+        function showHeatmapDetail(item) {
+            document.getElementById('heatmap-detail-empty').classList.add('hidden');
+            const content = document.getElementById('heatmap-detail-content');
+            content.classList.remove('hidden');
+
+            const avgSev = getSeverity(item.total);
+
+            document.getElementById('hm-detail-title').innerText = `Bloque ${item.bloque} - Válvula ${item.valvula}`;
+            
+            const badge = document.getElementById('hm-detail-badge');
+            badge.innerText = `PROMEDIO: ${item.total} IND (${avgSev.label})`;
+            badge.className = `px-2.5 py-0.5 text-[10px] font-extrabold uppercase rounded-full shadow-sm ${avgSev.text} ${avgSev.bg} border ${avgSev.border}`;
+
+            document.getElementById('hm-val-1').innerText = item.s8_2025 !== null ? item.s8_2025 : 'S/D';
+            document.getElementById('hm-val-2').innerText = item.s38_2025 !== null ? item.s38_2025 : 'S/D';
+            document.getElementById('hm-val-3').innerText = item.s3_2026 !== null ? item.s3_2026 : 'S/D';
+            document.getElementById('hm-val-4').innerText = item.s5_2026 !== null ? item.s5_2026 : 'S/D';
+            document.getElementById('hm-val-5').innerText = item.s19_2026 !== null ? item.s19_2026 : 'S/D';
+        }
+
+        // 📋 BASE DE DATOS Y TABLA DINÁMICA
+        function renderTable() {
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            dataset.forEach(item => {
+                const sev = getSeverity(item.total);
+                
+                const tr = document.createElement('tr');
+                tr.className = "hover:bg-slate-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-4 font-bold text-slate-800">Bloque ${item.bloque}</td>
+                    <td class="p-4 font-medium text-slate-600">Válvula ${item.valvula}</td>
+                    <td class="p-4 text-center font-semibold text-slate-500">${item.s8_2025 !== null ? item.s8_2025 : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="p-4 text-center font-semibold text-slate-500">${item.s38_2025 !== null ? item.s38_2025 : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="p-4 text-center font-semibold text-slate-500">${item.s3_2026 !== null ? item.s3_2026 : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="p-4 text-center font-semibold text-slate-500">${item.s5_2026 !== null ? item.s5_2026 : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="p-4 text-center font-semibold text-slate-500">${item.s19_2026 !== null ? item.s19_2026 : '<span class="text-slate-300">-</span>'}</td>
+                    <td class="p-4 text-center font-extrabold text-slate-700 bg-slate-50/50">${item.total}</td>
+                    <td class="p-4 text-center">
+                        <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border uppercase inline-block ${sev.bg} ${sev.text} ${sev.border}">
+                            ${sev.label}
+                        </span>
+                    </td>
+                `;
+                tableBody.appendChild(tr);
+            });
+        }
+
+        function filterTable() {
+            const searchVal = document.getElementById('table-search').value.toLowerCase();
+            const sevFilter = document.getElementById('table-severity-filter').value;
+            const tableBody = document.getElementById('table-body');
+            tableBody.innerHTML = '';
+
+            dataset.forEach(item => {
+                const sev = getSeverity(item.total);
+                const matchesSearch = `bloque ${item.bloque} valvula ${item.valvula}`.toLowerCase().includes(searchVal);
+                
+                let matchesSev = true;
+                if (sevFilter !== 'all') {
+                    matchesSev = (sev.label.toLowerCase() === sevFilter);
+                }
+
+                if (matchesSearch && matchesSev) {
+                    const tr = document.createElement('tr');
+                    tr.className = "hover:bg-slate-50 transition-colors";
+                    tr.innerHTML = `
+                        <td class="p-4 font-bold text-slate-800">Bloque ${item.bloque}</td>
+                        <td class="p-4 font-medium text-slate-600">Válvula ${item.valvula}</td>
+                        <td class="p-4 text-center font-semibold text-slate-500">${item.s8_2025 !== null ? item.s8_2025 : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="p-4 text-center font-semibold text-slate-500">${item.s38_2025 !== null ? item.s38_2025 : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="p-4 text-center font-semibold text-slate-500">${item.s3_2026 !== null ? item.s3_2026 : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="p-4 text-center font-semibold text-slate-500">${item.s5_2026 !== null ? item.s5_2026 : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="p-4 text-center font-semibold text-slate-500">${item.s19_2026 !== null ? item.s19_2026 : '<span class="text-slate-300">-</span>'}</td>
+                        <td class="p-4 text-center font-extrabold text-slate-700 bg-slate-50/50">${item.total}</td>
+                        <td class="p-4 text-center">
+                            <span class="px-2.5 py-1 rounded-full text-[10px] font-extrabold border uppercase inline-block ${sev.bg} ${sev.text} ${sev.border}">
+                                ${sev.label}
+                            </span>
+                        </td>
+                    `;
+                    tableBody.appendChild(tr);
+                }
+            });
+        }
+
+        // 🧪 PRESCRICTOR TÉCNICO Y CALCULADOR
+        function initCalculator() {
+            const blockSelect = document.getElementById('calc-block');
+            blockSelect.innerHTML = '';
+
+            const uniqueBlocks = [...new Set(dataset.map(item => item.bloque))].sort((a,b) => parseInt(a) - parseInt(b));
+            uniqueBlocks.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b;
+                opt.innerText = `Bloque ${b}`;
+                blockSelect.appendChild(opt);
+            });
+
+            populateCalcValves();
+        }
+
+        function populateCalcValves() {
+            const blockId = document.getElementById('calc-block').value;
+            const valveSelect = document.getElementById('calc-valve');
+            valveSelect.innerHTML = '';
+
+            const valves = dataset.filter(item => item.bloque === blockId).sort((a,b) => parseInt(a.valvula) - parseInt(b.valvula));
+            valves.forEach(v => {
+                const opt = document.createElement('option');
+                opt.value = v.valvula;
+                opt.innerText = `Válvula ${v.valvula}`;
+                valveSelect.appendChild(opt);
+            });
+
+            runPrescription();
+        }
+
+        function runPrescription() {
+            const blockId = document.getElementById('calc-block').value;
+            const valveId = document.getElementById('calc-valve').value;
+            const volumeM3 = parseFloat(document.getElementById('calc-area').value) || 0;
+            const controlType = document.getElementById('calc-type').value;
+
+            const record = dataset.find(item => item.bloque === blockId && item.valvula === valveId);
+            if (!record) return;
+
+            // Tomar el valor poblacional más alto registrado en el historial como criterio de seguridad fitosanitaria
+            const peakPop = Math.max(record.s8_2025 || 0, record.s38_2025 || 0, record.s3_2026 || 0, record.s5_2026 || 0, record.s19_2026 || 0);
+            const sev = getSeverity(peakPop);
+
+            document.getElementById('prescription-target').innerText = `PRESCIPCIÓN: Bloque ${blockId} - Válvula ${valveId}`;
+            document.getElementById('prescription-poblacion').innerText = `${peakPop}`;
+            
+            const sevBadge = document.getElementById('prescription-severity-badge');
+            sevBadge.innerText = `Severidad Máxima: ${sev.label.toUpperCase()}`;
+            sevBadge.className = `px-3 py-1 rounded-full text-xs font-bold ${sev.bg} ${sev.text} border ${sev.border}`;
+
+            let activeDose = 0;
+            let dilutionVol = 0;
+            let freq = 'Cada 15 días';
+            let instructions = '';
+
+            if (controlType === 'biological') {
+                if (peakPop < 50) {
+                    activeDose = 1.0 * (volumeM3 / 100);
+                    dilutionVol = 180 * (volumeM3 / 50);
+                    freq = 'Cada 30 días';
+                    instructions = 'Inoculación preventiva por sistema de goteo. Aplicar esporas viables de *Purpureocillium lilacinum* en horas de la tarde para evitar radiación directa. Mantener humedad estable del sustrato.';
+                } else if (peakPop <= 100) {
+                    activeDose = 2.0 * (volumeM3 / 100);
+                    dilutionVol = 250 * (volumeM3 / 50);
+                    freq = 'Cada 20 días';
+                    instructions = 'Inoculación correctiva biológica intermedia. Añadir extractos de algas para estimular la emisión de raíces secundarias y reparar las zonas noduladas por nematodos.';
+                } else {
+                    activeDose = 3.5 * (volumeM3 / 100);
+                    dilutionVol = 400 * (volumeM3 / 50);
+                    freq = 'Cada 8 a 12 días';
+                    instructions = 'Foco crítico biológico. Aplicar dosis de choque biológico alternando *P. lilacinum* con *Trichoderma harzianum*. Monitorear el nivel de micelio en el sustrato cada semana.';
+                }
+                document.getElementById('prescription-unit-desc').innerText = 'Esporas Biológicas';
+                document.getElementById('prescription-dose').innerText = `${activeDose.toFixed(2)} Kg/Sustrato`;
+            } else {
+                if (peakPop < 50) {
+                    activeDose = 0.4 * (volumeM3 / 100);
+                    dilutionVol = 120 * (volumeM3 / 50);
+                    freq = 'Sólo Monitoreo';
+                    instructions = 'No se justifica control químico severo. Mantener medidas de higiene, desinfectar herramientas de poda y evitar encharcamientos de agua.';
+                } else if (peakPop <= 100) {
+                    activeDose = 0.8 * (volumeM3 / 100);
+                    dilutionVol = 200 * (volumeM3 / 50);
+                    freq = 'Aplicación única';
+                    instructions = 'Aplicar nematicida organofosforado o sistémico de baja persistencia. Realizar la inyección en el tercio medio del riego para asegurar una distribución homogénea en la masa radicular.';
+                } else {
+                    activeDose = 1.8 * (volumeM3 / 100);
+                    dilutionVol = 350 * (volumeM3 / 50);
+                    freq = 'Cada 15 días (2 ciclos)';
+                    instructions = 'Alerta de intervención de choque. Nematicida químico sistémico de amplio espectro. Aplicar un volumen de riego suficiente para lavar la línea post-inyección y evitar fitotoxicidad en el cuello de las plantas.';
+                }
+                document.getElementById('prescription-unit-desc').innerText = 'Químico Sistémico';
+                document.getElementById('prescription-dose').innerText = `${activeDose.toFixed(2)} Lts/Sustrato`;
+            }
+
+            document.getElementById('prescription-dilution').innerText = `${Math.ceil(dilutionVol)} Lts`;
+            document.getElementById('prescription-frequency').innerText = freq;
+            document.getElementById('prescription-instructions').innerText = instructions;
+        }
+    </script>
+</body>
+</html>
